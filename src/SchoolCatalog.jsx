@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 export default function SchoolCatalog() {
   const [courses, setCourses] = useState([]);
   const [search, setSearch] = useState('');
+  const [sortOrder, setSortOrder] = useState({ key: '', direction: ''});
 
   useEffect(() => {
     fetch('/api/courses.json')
@@ -13,10 +14,31 @@ export default function SchoolCatalog() {
     setSearch(event.target.value);
   };
 
-  const filteredCourses = courses.filter((course) =>
+  const sortCourse = [...courses].sort((a, b) => {
+    if (sortOrder.key) {
+      const firstSort = a[sortOrder.key].toString();
+      const secondSort = b[sortOrder.key].toString();
+      if (firstSort < secondSort) {
+        return (sortOrder.direction === 'ascending' ? -1 : 1);
+      } else {
+        return (sortOrder.direction === 'ascending' ? 1 : -1);
+      }
+    }
+    return (0);
+  });
+
+  const filteredCourses = sortCourse.filter((course) =>
     course.courseNumber.toLowerCase().includes(search.toLowerCase()) ||
     course.courseName.toLowerCase().includes(search.toLowerCase())
   );
+
+  const handleSort = (key) => {
+    let direction = 'ascending';
+    if (sortOrder.key === key && sortOrder.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortOrder({ key, direction });
+  };
 
   return (
     <div className="school-catalog">
@@ -30,11 +52,11 @@ export default function SchoolCatalog() {
       <table>
         <thead>
           <tr>
-            <th>Trimester</th>
-            <th>Course Number</th>
-            <th>Course Name</th>
-            <th>Semester Credits</th>
-            <th>Total Clock Hours</th>
+            <th onClick={() => handleSort('trimester')}>Trimester</th>
+            <th onClick={() => handleSort('courseNumber')}>Course Number</th>
+            <th onClick={() => handleSort('courseName')}>Course Name</th>
+            <th onClick={() => handleSort('semesterCredits')}>Semester Credits</th>
+            <th onClick={() => handleSort('totalClockHours')}>Total Clock Hours</th>
             <th>Enroll</th>
           </tr>
         </thead>
